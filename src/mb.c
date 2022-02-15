@@ -1,32 +1,37 @@
 #include "mb.h"
 
-uint32_t MMIO_BASE;
+/* mailbox message buffer */
+volatile unsigned int  __attribute__((aligned(16))) mbox[36];
 
-void mmio_init(int raspi)
+#define VIDEOCORE_MBOX  (MMIO_BASE+0x0000B880)
+#define MBOX_READ       ((volatile unsigned int*)(VIDEOCORE_MBOX+0x0))
+#define MBOX_POLL       ((volatile unsigned int*)(VIDEOCORE_MBOX+0x10))
+#define MBOX_SENDER     ((volatile unsigned int*)(VIDEOCORE_MBOX+0x14))
+#define MBOX_STATUS     ((volatile unsigned int*)(VIDEOCORE_MBOX+0x18))
+#define MBOX_CONFIG     ((volatile unsigned int*)(VIDEOCORE_MBOX+0x1C))
+#define MBOX_WRITE      ((volatile unsigned int*)(VIDEOCORE_MBOX+0x20))
+#define MBOX_RESPONSE   0x80000000
+#define MBOX_FULL       0x80000000
+#define MBOX_EMPTY      0x40000000
+
+/**
+ * Make a mailbox call. Returns 0 on failure, non-zero on success
+ */
+int mbox_call(unsigned char ch)
 {
-    switch (raspi) {
-        case 2:
-        case 3:  MMIO_BASE = 0x3F000000; break; // for raspi2 & 3
-        case 4:  MMIO_BASE = 0xFE000000; break; // for raspi4
-        default: MMIO_BASE = 0x20000000; break; // for raspi1, raspi zero etc.
+    unsigned int r = (((unsigned int)((unsigned long)&mbox)&~0xF) | (ch&0xF));
+    /* wait until we can write to the mailbox */
+    do{asm volatile("nop");}while(*MBOX_STATUS & MBOX_FULL);
+    /* write the address of our message to the mailbox with channel identifier */
+    *MBOX_WRITE = r;
+    /* now wait for the response */
+    while(1) {
+        /* is there a response? */
+        do{asm volatile("nop");}while(*MBOX_STATUS & MBOX_EMPTY);
+        /* is it a response to our message? */
+        if(r == *MBOX_READ)
+            /* is it a valid successful response? */
+            return mbox[1]==MBOX_RESPONSE;
     }
-}
-
-// Memory-Mapped I/O output
-void mmio_write(uint32_t reg, uint32_t data)
-{
-	*(volatile uint32_t*)(MMIO_BASE + reg) = data;
-}
- 
-// Memory-Mapped I/O input
-uint32_t mmio_read(uint32_t reg)
-{
-	return *(volatile uint32_t*)(MMIO_BASE + reg);
-}
- 
-// Loop <delay> times in a way that the compiler won't optimize away
-void delay(int32_t count)
-{
-	asm volatile("__delay_%=: subs %[count], %[count], #1; bne __delay_%=\n"
-		 : "=r"(count): [count]"0"(count) : "cc");
+    return 0;
 }

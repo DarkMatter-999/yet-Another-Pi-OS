@@ -39,5 +39,8 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.S | $(OBJ_DIR)
 clean:
 	rm -rfv $(BIN_DIR) $(OBJ_DIR)
 
-run:
+debug:
 	qemu-system-aarch64 -M raspi3b -serial stdio -kernel $(BIN_DIR)/kernel8.elf -s -S
+	
+run:
+	qemu-system-aarch64 -M raspi3b -serial stdio -kernel $(BIN_DIR)/kernel8.elf

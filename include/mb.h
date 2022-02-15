@@ -1,15 +1,24 @@
-#ifndef MAILBOX_H
-#define MAILBOX_H
+#include "gpio.h"
 
-#include <stddef.h>
-#include <stdint.h>
+/* a properly aligned buffer */
+extern volatile unsigned int mbox[36];
 
-void delay(int32_t count);
+#define MBOX_REQUEST    0
 
-void mmio_init(int raspi);
- 
-void mmio_write(uint32_t reg, uint32_t data);
+/* channels */
+#define MBOX_CH_POWER   0
+#define MBOX_CH_FB      1
+#define MBOX_CH_VUART   2
+#define MBOX_CH_VCHIQ   3
+#define MBOX_CH_LEDS    4
+#define MBOX_CH_BTNS    5
+#define MBOX_CH_TOUCH   6
+#define MBOX_CH_COUNT   7
+#define MBOX_CH_PROP    8
 
-uint32_t mmio_read(uint32_t reg);
+/* tags */
+#define MBOX_TAG_GETSERIAL      0x10004
+#define MBOX_TAG_SETCLKRATE     0x38002
+#define MBOX_TAG_LAST           0
 
-#endif /* MAILBOX_H */
+int mbox_call(unsigned char ch);
