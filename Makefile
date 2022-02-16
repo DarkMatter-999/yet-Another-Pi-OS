@@ -43,4 +43,4 @@ debug:
 	qemu-system-aarch64 -M raspi3b -serial stdio -kernel $(BIN_DIR)/kernel8.elf -s -S
 	
 run:
-	qemu-system-aarch64 -M raspi3b -serial stdio -kernel $(BIN_DIR)/kernel8.elf
+	qemu-system-aarch64 -M raspi3b -serial stdio -kernel $(BIN_DIR)/kernel8.img
