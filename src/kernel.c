@@ -21,17 +21,6 @@ void main()
     drawString(10,10,"Hello world!",0x0f);
     drawString(1020, 200, "It works!!!", 0xf);
 
-    uart_puts("Writing through identity mapped MMIO.\n");
-    char *s="Writing through MMIO mapped in higher half!\r\n";
-    // test mapping
-    while(*s) {
-        /* wait until we can send */
-        do{asm volatile("nop");}while(*KERNEL_UART0_FR&0x20);
-        /* write the character to the buffer */
-        *KERNEL_UART0_DR=*s++;
-    }
-
-
     while(1) {
         uart_putc(uart_getc());
     }

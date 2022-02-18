@@ -124,4 +124,6 @@ void mmu_init()
          (1<<1));    // clear A, no aligment check
     r|=  (1<<0);     // set M, enable MMU
     asm volatile ("msr sctlr_el1, %0; isb" : : "r" (r));
+
+    uart_puts("MMU initialized successfully\n");
 }

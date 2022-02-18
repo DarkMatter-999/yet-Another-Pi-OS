@@ -49,6 +49,9 @@ _start:
     mov     x2, #0x0800
     movk    x2, #0x30d0, lsl #16
     msr     sctlr_el1, x2
+    // set up exception handlers
+    ldr     x2, =_vectors
+    msr     vbar_el1, x2
     // change execution level to EL1
     mov     x2, #0x3c4
     msr     spsr_el2, x2
@@ -70,3 +73,42 @@ _start:
 4:  bl      main
     // for failsafe, halt this core too
     b       1b
+
+// important, code has to be properly aligned
+    .align 11
+_vectors:
+    // synchronous
+    .align  7
+    mov     x0, #0
+    mrs     x1, esr_el1
+    mrs     x2, elr_el1
+    mrs     x3, spsr_el1
+    mrs     x4, far_el1
+    b       exc_handler
+
+    // IRQ
+    .align  7
+    mov     x0, #1
+    mrs     x1, esr_el1
+    mrs     x2, elr_el1
+    mrs     x3, spsr_el1
+    mrs     x4, far_el1
+    b       exc_handler
+
+    // FIQ
+    .align  7
+    mov     x0, #2
+    mrs     x1, esr_el1
+    mrs     x2, elr_el1
+    mrs     x3, spsr_el1
+    mrs     x4, far_el1
+    b       exc_handler
+
+    // SError
+    .align  7
+    mov     x0, #3
+    mrs     x1, esr_el1
+    mrs     x2, elr_el1
+    mrs     x3, spsr_el1
+    mrs     x4, far_el1
+    b       exc_handler
